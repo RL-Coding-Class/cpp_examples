@@ -7,19 +7,19 @@ protected:
     std::string type;
 
 private:
-    std::string brand;
     std::string model;
     int wheels;
     int doors;
     int color; // 0 - black, 1 - red, 2 - blue, 3 - green, 4 - white
+
 public:
-    Vehicle(std::string _brand, std::string _model, int _wheels, int _doors, int _color, std::string _type = "Vehicle")
-        : type(std::move(_type)), brand(std::move(_brand)), model(std::move(_model)), wheels(_wheels), doors(_doors),
-          color(_color)
+    Vehicle(std::string _model, int _wheels, int _doors, int _color, std::string _type = "Vehicle")
+        : type(std::move(_type)), model(std::move(_model)), wheels(_wheels), doors(_doors), color(_color)
     {
-        std::print("{} : {} {} with {} wheels, {} doors and color of {}\n", type, brand, model, wheels, doors, color);
+        std::print("{} : {} with {} wheels, {} doors and color of {}\n", type, model, wheels, doors, color);
     }
-    auto get_doors() { return doors; }
+    auto get_type() const { return type; }
+    auto get_doors() const { return doors; }
 };
 
 /* Starship uses constructrs from the bsae Vehicle class.
@@ -32,21 +32,17 @@ public:
 
 /* Car can have aditional ifno about gear type.
  */
-class Car : public Vehicle
+class Automobile : public Vehicle
 {
 private:
     bool has_automatic_gear{false};
 
 public:
-    Car(std::string _brand, std::string _model, int _doors, int _color, bool _has_automatic_gear)
-        : Vehicle(_brand, _model, 2, _doors, _color, "Car"), has_automatic_gear(_has_automatic_gear)
+    Automobile(std::string _model, int _wheels, int _doors, int _color, bool _has_automatic_gear,
+               std::string _type = "Automobile")
+        : Vehicle(_model, _wheels, _doors, _color, _type), has_automatic_gear(_has_automatic_gear)
     {
-        std::print("{} has {} doors.  Does it have automatic gear?\n", type, get_doors(),
-                   has_automatic_gear ? "Yes, it has!" : "No, it hasn't.");
-    }
-    Car(std::string _brand, std::string _model, bool _has_automatic_gear)
-        : Car(_brand, _model, 4, 5, _has_automatic_gear)
-    {
+        std::print("  Does it have automatic gear? {}\n", has_automatic_gear ? "Yes, it has!" : "No, it hasn't.");
     }
 };
 
@@ -58,13 +54,11 @@ private:
     bool has_gears{false};
 
 public:
-    Bike(std::string _brand, std::string _model, int _color, bool _has_gears)
-        : Vehicle(_brand, _model, 2, 0, _color, "Bike"), has_gears(_has_gears)
+    Bike(std::string _model, int _color, bool _has_gears) : Vehicle(_model, 2, 0, _color, "Bike"), has_gears(_has_gears)
     {
-        std::print("My bike has {} doors. Does it have gears? {}\n", get_doors(),
-                   has_gears ? "Yes, it has!" : "No, it hasn't.");
+        std::print("  Does it have gears? {}\n", has_gears ? "Yes, it has!" : "No, it hasn't.");
     }
-    Bike(std::string _brand, std::string _model, bool _has_gears) : Bike(_brand, _model, 1, _has_gears) {}
+    Bike(std::string _model, bool _has_gears) : Bike(_model, 1, _has_gears) {}
 };
 
 /* Base abstract class for the engine kind.
@@ -72,7 +66,7 @@ public:
 class Engine
 {
 public:
-    virtual void start_engine() = 0;
+    virtual auto start_engine() const -> std::string = 0;
 };
 
 /* Diesel engine.
@@ -93,39 +87,73 @@ class Electric : public Engine
 {
 };
 
-class GasolineCar : public Car, public Gasoline
-{
-public:
-    GasolineCar() = default;
-};
-
-class ElectricCar : public Car, public Electric
+class Truck : public Automobile, public Diesel
 {
 };
 
-class HybridCar : public GasolineCar, public ElectricCar
+class Car : public Automobile, public Gasoline
 {
 };
 
-/* Task 1
- *
+class ElectricCar : public Automobile, public Electric
+{
+};
+
+class HybridCar : public Car, public ElectricCar
+{
+};
+
+/*
+ * Dla kazdego zadania przypisana jest jedna dyrektywa preprocesora. Zmień jej wartosć z 0 na 1 aby ją aktywować.
+ * Następnie wykonaj odpowiednie zadania.
  */
-#define ENABLE_TASK_1 1
+
+/* Zadanie 1
+ * Zaimplementuj brakujące funkcje i konstruktory. Zapoznaj się z błędami, jakie pokazuje kompilator aby uzyskać
+ * wskazówki.
+ */
+#define ENABLE_TASK_1 0
+
+/* Task 2
+ * Implement functions allowing code to compile.
+ */
+#define ENABLE_TASK_2 0
+
+auto runime_assert_msg(auto given, auto expected, auto line) -> void
+{
+    if (given != expected)
+    {
+        std::print("Abort at line {} with {} != {}\n", line, given, expected);
+        abort();
+    }
+}
 
 int main()
 {
-    Vehicle v1("Unknown", "Unknown", 4, 4, 0);
-    Starship s1("USS", "Enterprise", 0, 0, 0);
+    Vehicle v1("Unknown", 4, 4, 0);
+    runime_assert_msg(v1.get_type(), "Vehicle", __LINE__);
 
-    // Car c1(v1);
-    Car c2("Porshe", "911", 4, 2, 1);
-    // Bike b2(4, 5, 1);
-    Bike b3("Gazelle", "Arroyo C5", 2);
+    Starship s1("USS Enterprise NX-01", 0, 0, 0);
+    runime_assert_msg(s1.get_type(), "Vehicle", __LINE__);
 
-    v1.get_doors();
-    b3.get_doors();
+    Automobile a1("Classic car", 4, 2, 1, true);
+    runime_assert_msg(a1.get_type(), "Automobile", __LINE__);
+
+    Bike b1("Gazelle Arroyo C5", 2);
+    runime_assert_msg(b1.get_type(), "Bike", __LINE__);
+
+    runime_assert_msg(v1.get_doors(), 4, __LINE__);
+    runime_assert_msg(b1.get_doors(), 0, __LINE__);
 
 #if ENABLE_TASK_1
-    GasolineCar gs_car_1("Renault", "Twingo", 4, 5, 4);
+    Truck truck_1("MAN TGX", 16, 2, 4);
+    runime_assert_msg(truck_1.get_type(), "Truck", __LINE__);
+    runime_assert_msg(truck_1.get_doors(), 2, __LINE__);
+    runime_assert_msg(truck_1.get_wheels(), 16, __LINE__);
+    runime_assert_msg(truck_1.get_color(), 4, __LINE__);
+#endif
+
+#if ENABLE_TASK_2
+    ElectricCar electric_car_1("Tesla S", 4, 16, 4);
 #endif
 }
