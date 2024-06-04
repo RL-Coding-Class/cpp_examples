@@ -2,20 +2,17 @@ DEPDIR := .deps
 $(shell mkdir -p $(DEPDIR) >/dev/null)
 
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$@.d
-CXXFLAGS = -g -std=c++23 -pedantic -Wall -Wextra -Werror -Wshadow -Wconversion -Wunreachable-code -Isrc
+CXXFLAGS = -g -std=c++23 -pedantic -Wall -Wextra -Werror -Wshadow -Wconversion -Wunreachable-code
 
-SRCS := polymorphism_derivations_and_diamond_problem.cpp
+SRCS := diamond_problem_example.cpp
 OBJS := $(SRCS:.cpp=.o)
 DEPS := $(SRCS:.cpp=.d)
-TARGETS = $(notdir $(SRCS:.cpp=))
+TARGETS = $(SRCS:.cpp=)
 
 all: $(TARGETS) $(TEST_TARGET)
 
 format: $(SRCS)
-	clang-format --style=file $^
-
-test : ass02_tests
-	./$<
+	clang-format --style=file $^ -i
 
 %.o: %.cpp
 	$(CXX) $(DEPFLAGS) $(CXXFLAGS) -c $< -o $@
@@ -23,7 +20,7 @@ test : ass02_tests
 %: %*.cpp
 	$(CXX) $(DEPFLAGS) $(CXXFLAGS) -o $(notdir $@) $<
 
-$(foreach s,$(SRCS),$(foreach o,$(filter %$(basename $(notdir $s)),$(TARGETS)),$(eval $o: $s)))
+$(foreach s,$(SRCS),$(foreach o,$(filter %$(basename $s),$(TARGETS)),$(eval $o: $s)))
 $(TARGETS):
 	$(CXX) $(DEPFLAGS) $(CXXFLAGS) -o $@ $<
 
